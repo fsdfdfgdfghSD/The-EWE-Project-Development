@@ -1,2 +1,2 @@
 TODO: compile lua coreutils to executable using luastatic.
-TODO: Switch to GPLv3+
+TODO: Write a cool manual similar to `man` command, but for my core utilities.

@@ -1,4 +1,4 @@
-/* mkdir -- make directories
+/* md -- make directories
    Copyright (C) 2024 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -24,31 +24,39 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <getopt.h>
+#include <limits.h> /* PATH_MAX */
+
+/* definitions */
 
 #define PROGRAM_NAME "md"
 #define AUTHOR "netheround"
 
-// TODO: Fix argument parsing for options required arguments. `md -p=0` or `md -p a/b` and so on.
-// TODO Once parents option is done, try it out doing stuff like `md -pv a/b` and so on.
+#define md_mkdir(path) (mkdir((path), \
+    S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH))
+
+// ...
 
 /* options */
 
-/* Flag set by '--help, --version'. */
+/* flag set by '--help, --version'. */
 static int verbose_flag;
+
+/* parents option, see: `man 1 mkdir` */
+static bool is_parents = false;
 
 /* verbose option, see: `man 1 mkdir` */
 static bool is_verbose = false;
 
-/* mode option, see: `man 1 mkdir` and unix file permissions. */
-static mode_t mode = S_IRWXU; // read, write, execute/search by owner
+/* explicit verbose option expands the verbose message by displaying the current-working-path where it created it. */
+static bool explicit_verbose = false;
 
 static struct option long_options[] = {
-    /* These options set a flag. */
+    /* these options set a flag. */
     {"verbose", no_argument, 0, 'v'},
+    {"explicit", no_argument, 0, 'e'},
     {"parents", no_argument, 0, 'p'},
-    {"mode", required_argument, 0, 'm'},
 
-    /* These options don't set a flag. */
+    /* these options don't set a flag. */
     {"help", no_argument, &verbose_flag, 1},
     {"version", no_argument, &verbose_flag, 2},
 
@@ -58,25 +66,64 @@ static struct option long_options[] = {
 
 // ...
 
-int
-create_dir (const char *dirname, mode_t mode)
+static int
+make_dir (const char *dirname)
 {
-    if (mkdir(dirname, mode) == -1) {
+    /* ignoring errors from creating parented directories: for instance if a and b exist, and you do `md -p a/b/c` it might throw few errors that `a` and `b` exist aleardy. */
+    // TODO: Find potential fix for it ^
+
+    if (md_mkdir(dirname) == -1 && !is_parents) {
         fprintf(stderr, "%s: cannot create directory ‘%s’: %s\n", PROGRAM_NAME, dirname, strerror(errno));
         return -1;
     }
 
-    if (is_verbose)
-        printf("%s: created directory '%s'\n", PROGRAM_NAME, dirname);
+    /* formatting for verbose */
+    const char *fmt = (explicit_verbose && is_verbose) ?
+                        "%s: created directory '%s' in: '%s'\n" :
+                        (is_verbose) ?
+                        "%s: created directory '%s'\n" :
+                        NULL;
+
+    char buf[PATH_MAX];
+    const char *cwd = getcwd(buf, sizeof(buf));
+
+    // TODO: Use chdir to change to the last directory if creating using parents.
+    // TODO: For verbose mode, you gotta print just only when a new directory is created, im currently ignoring while using parents to do `md -vep a/b/c` while a and b exis.
+
+    if (cwd == NULL) {
+        fprintf(stderr, "%s: could not return the current-working-directoy: %s\n", PROGRAM_NAME, strerror(errno));
+        return -1;
+    }
+
+    printf(fmt, PROGRAM_NAME, dirname, cwd);
+    return 0;
 }
 
-int
-create_parents (const char *dirname, mode_t mode)
+static int
+create_dir (const char *dirname)
 {
-    // todo
+    char buf[PATH_MAX];
+    char *p = NULL;
+    size_t len;
+
+    snprintf(buf, sizeof(buf), "%s", dirname);
+    len = strlen(buf);
+
+    if (buf[len - 1] == '/')
+        buf[len - 1] = 0;
+    
+    for (p = buf + 1; *p; ++p) {
+        if (*p == '/') {
+            *p = 0;
+            make_dir(buf);
+            *p = '/';
+        }
+    }
+
+    return make_dir(buf);
 }
 
-int
+static int
 usage (int status)
 {
     if (status == EXIT_FAILURE) {
@@ -88,20 +135,21 @@ usage (int status)
     "Create the DIRECTORY(ies), if they do not already exist.\n\n", PROGRAM_NAME);
 
     puts("Options:\n"
-    "  -m, --mode=MODE\tset file mode (as in cm)\n"
     "  -p, --parents\t\tno error if existing, make parent directories as needed\n"
-    "  -v, --verbose\t\tprint a message for each created directory\n\n"
+    "  -v, --verbose\t\tprint a message for each created directory\n"
+    "  -e, --explicit\tenables explicit information for verbose when calling `-v, --verbose`\n\n"
     
     "\t--help\t\tdisplay this help and exit\n"
     "\t--version\toutput version information and exit\n");
 
     printf("Examples:\n"
     "  %s test      -> creates directory 'test' if it doesn't exist.\n"
-    "  %s a b c     -> creates directories 'a', 'b', 'c', if they do not exist aleardy.\n", PROGRAM_NAME, PROGRAM_NAME);
+    "  %s a b c     -> creates directories 'a', 'b', 'c', if they do not exist aleardy.\n"
+    "  %s -vp a/b   -> creates directories 'a' and 'b' inside of 'a' while printing a message for each created directory.\n", PROGRAM_NAME, PROGRAM_NAME, PROGRAM_NAME);
     exit(status);
 }
 
-int
+static int
 version_info()
 {
     printf("%s (EWE Coreutils) 0.0.1\n"
@@ -116,10 +164,9 @@ int
 main (int argc, char **argv)
 {
     int c;
-    while (1) {
+    while (true) {
         int option_ind = 0;
-        c = getopt_long(argc, argv, "vpm:",
-            long_options, &option_ind);
+        c = getopt_long(argc, argv, "vep", long_options, &option_ind);
 
         if (c == -1)
             break;
@@ -138,12 +185,12 @@ main (int argc, char **argv)
                 is_verbose = true;
                 break;
             
-            case 'p':
-                // todo:
+            case 'e':
+                explicit_verbose = true;
                 break;
 
-            case 'm':
-                // todo:
+            case 'p':
+                is_parents = true;
                 break;
 
             case '?':
@@ -165,12 +212,13 @@ main (int argc, char **argv)
             version_info();
     }
 
+    /* create directories from command line arguments */
     if (optind < argc) {
         while (optind < argc) {
             /* succesfully creating directories */
 
             const char *dirname = argv[optind++];
-            if (create_dir(dirname, mode) == -1)
+            if (create_dir(dirname) == -1)
                 exit(EXIT_FAILURE);
         }
     } else if (optind < argc + 1) {
