@@ -28,11 +28,19 @@
 
 /* definitions */
 
+#ifdef _WIN32
+# include <direct.h>
+
+# define md_mkdir(path) (_mkdir(path))
+# define PATH_SEP "\\"
+#elif defined(__linux__)
+# define md_mkdir(path) (mkdir((path), \
+    S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH))
+# define PATH_SEP "/"
+#endif /* _WIN32 */
+
 #define PROGRAM_NAME "md"
 #define AUTHOR "netheround"
-
-#define md_mkdir(path) (mkdir((path), \
-    S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH))
 
 #ifndef PATH_MAX
 # define PATH_MAX 4096
@@ -73,11 +81,19 @@ static struct option long_options[] = {
 static int
 make_dir (const char *dirname)
 {
-    /* ignoring errors from creating parented directories: for instance if a and b exist, and you do `md -p a/b/c` it might throw few errors that `a` and `b` exist aleardy. */
-    // TODO: Find potential fix for it ^
+    if (md_mkdir(dirname) == -1) {
+        /* if is_parents and e_exist error, ignore it and continue */
+        if (is_parents && errno == EEXIST) {
+            return 0;
+        } else {
+            fprintf(stderr, "%s: cannot create directory '%s': %s\n", PROGRAM_NAME, dirname, strerror(errno));
+            return -1;
+        }
+    }
 
-    if (md_mkdir(dirname) == -1 && !is_parents) {
-        fprintf(stderr, "%s: cannot create directory ‘%s’: %s\n", PROGRAM_NAME, dirname, strerror(errno));
+    /* change current working directory for explicit_verbose mode. */
+    if (chdir(dirname) == -1) {
+        fprintf(stderr, "%s: cannot change directory to '%s': %s\n", PROGRAM_NAME, dirname, strerror(errno));
         return -1;
     }
 
@@ -91,9 +107,6 @@ make_dir (const char *dirname)
     char buf[PATH_MAX];
     const char *cwd = getcwd(buf, sizeof(buf));
 
-    // TODO: Use chdir to change to the last directory if creating using parents.
-    // TODO: For verbose mode, you gotta print just only when a new directory is created, im currently ignoring while using parents to do `md -vep a/b/c` while a and b exis.
-
     if (cwd == NULL) {
         fprintf(stderr, "%s: could not return the current-working-directoy: %s\n", PROGRAM_NAME, strerror(errno));
         return -1;
@@ -106,6 +119,7 @@ make_dir (const char *dirname)
 static int
 create_dir (const char *dirname)
 {
+    /* creating directories parents */
     char buf[PATH_MAX];
     char *p = NULL;
     size_t len;
@@ -125,10 +139,11 @@ create_dir (const char *dirname)
         }
     }
 
+    /* creating casual directories */
     return make_dir(buf);
 }
 
-static int
+static void
 usage (int status)
 {
     if (status == EXIT_FAILURE) {
