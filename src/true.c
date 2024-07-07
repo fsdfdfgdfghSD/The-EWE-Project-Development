@@ -80,8 +80,7 @@ main (int argc, char **argv)
     }
 
     if (verbose_mode)
-        if (verbose_mode)
-    printf("%s: Exited with status code %d (%s)\n", PROGRAM_NAME, EXIT_STATUS,
+        printf("%s: Exited with status code %d (%s)\n", PROGRAM_NAME, EXIT_STATUS,
            (EXIT_STATUS == EXIT_SUCCESS) ? "success" : "failure");
 
     /* exits with the fixed exit status. */
