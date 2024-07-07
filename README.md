@@ -1,5 +1,5 @@
 # The-EWE-Project
-The EWE Project is a collection of free software including coreutils, shell, man.
+The EWE Project is a collection of free software including only the coreutilities.
 
 # Coreutils
 The coreutilities are designed to be unix-like and have the functionallity of a mix between dos-like and unix-like

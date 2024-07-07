@@ -34,6 +34,10 @@
 #define md_mkdir(path) (mkdir((path), \
     S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH))
 
+#ifndef PATH_MAX
+# define PATH_MAX 4096
+#endif /* PATH_MAX */
+
 // ...
 
 /* options */
@@ -109,8 +113,9 @@ create_dir (const char *dirname)
     snprintf(buf, sizeof(buf), "%s", dirname);
     len = strlen(buf);
 
-    if (buf[len - 1] == '/')
+    if (buf[len - 1] == '/') {
         buf[len - 1] = 0;
+    }
     
     for (p = buf + 1; *p; ++p) {
         if (*p == '/') {
@@ -149,7 +154,7 @@ usage (int status)
     exit(status);
 }
 
-static int
+static void
 version_info()
 {
     printf("%s (EWE Coreutils) 0.0.1\n"

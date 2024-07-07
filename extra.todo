@@ -1,2 +1,3 @@
 TODO: compile lua coreutils to executable using luastatic.
-TODO: Write a cool manual similar to `man` command, but for my core utilities.
+TODO: Write a makefile for building the whole source, compiling it for each system, placing the binaries where they should, and exporting them all. on linux `/bin` and they'll have a sep directory, but you wont need to reference that directory when you use them, they will be automatically exported into ~/.bashrc
+TODO: Write a cool manual similar to `man` command, but for my core utilities. the man command should use `less` for displaying output, see more: `man 1 less`, https://en.wikipedia.org/wiki/Man_page
