@@ -60,7 +60,7 @@ version_info()
     "License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\n"
     "This is free software: you are free to change and redistribute it.\n"
     "\nWritten by %s\n", PROGRAM_NAME, AUTHOR);
-    exit(EXIT_SUCCESS);
+    exit(EXIT_STATUS);
 }
 
 int

@@ -4,7 +4,7 @@ local errno = require("posix.errno").errno
 local PROGRAM_NAME = "dir"
 
 local function stderr_errno()
-	io.stdout:write(("%s: %s\n"):format(PROGRAM_NAME, errno()))
+	io.stderr:write(("%s: %s\n"):format(PROGRAM_NAME, errno()))
 	os.exit(1)
 end
 
