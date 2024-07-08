@@ -42,8 +42,9 @@
 #define PROGRAM_NAME "md"
 #define AUTHOR "netheround"
 
+/* PATH_MAX definitions for limits.h */
 #ifndef PATH_MAX
-# define PATH_MAX 4096
+# define PATH_MAX PATH_MAX
 #endif /* PATH_MAX */
 
 // ...
@@ -82,8 +83,8 @@ static int
 make_dir (const char *dirname)
 {
     if (md_mkdir(dirname) == -1) {
-        /* if is_parents and e_exist error, ignore it and continue */
-        if (is_parents && errno == EEXIST) {
+        /* if EEXIST error, ignore it and continue */
+        if (errno == EEXIST) {
             return 0;
         } else {
             fprintf(stderr, "%s: cannot create directory '%s': %s\n", PROGRAM_NAME, dirname, strerror(errno));
@@ -91,56 +92,49 @@ make_dir (const char *dirname)
         }
     }
 
-    /* change current working directory for explicit_verbose mode. */
-    if (chdir(dirname) == -1) {
-        fprintf(stderr, "%s: cannot change directory to '%s': %s\n", PROGRAM_NAME, dirname, strerror(errno));
-        return -1;
+    if (explicit_verbose) {
+        char buf[PATH_MAX];
+        const char *cwd = getcwd(buf, sizeof(buf));
+
+        if (cwd == NULL) {
+            fprintf(stderr, "%s: could not get current working directory: %s\n", PROGRAM_NAME, strerror(errno));
+            return -1;
+        }
+        printf("%s: created directory '%s' in: '%s%s%s'\n", PROGRAM_NAME, dirname, cwd, PATH_SEP, dirname);
+    } else if (is_verbose) {
+        printf("%s: created directory '%s'\n", PROGRAM_NAME, dirname);
     }
 
-    /* formatting for verbose */
-    const char *fmt = (explicit_verbose && is_verbose) ?
-                        "%s: created directory '%s' in: '%s'\n" :
-                        (is_verbose) ?
-                        "%s: created directory '%s'\n" :
-                        NULL;
-
-    char buf[PATH_MAX];
-    const char *cwd = getcwd(buf, sizeof(buf));
-
-    if (cwd == NULL) {
-        fprintf(stderr, "%s: could not return the current-working-directoy: %s\n", PROGRAM_NAME, strerror(errno));
-        return -1;
-    }
-
-    printf(fmt, PROGRAM_NAME, dirname, cwd);
     return 0;
 }
 
 static int
 create_dir (const char *dirname)
 {
-    /* creating directories parents */
-    char buf[PATH_MAX];
-    char *p = NULL;
-    size_t len;
+    if (is_parents) {
+        /* creating directories parents */
+        char buf[PATH_MAX];
+        char *p = NULL;
+        size_t len;
 
-    snprintf(buf, sizeof(buf), "%s", dirname);
-    len = strlen(buf);
+        snprintf(buf, sizeof(buf), "%s", dirname);
+        len = strlen(buf);
 
-    if (buf[len - 1] == '/') {
-        buf[len - 1] = 0;
-    }
-    
-    for (p = buf + 1; *p; ++p) {
-        if (*p == '/') {
-            *p = 0;
-            make_dir(buf);
-            *p = '/';
+        if (buf[len - 1] == '/') {
+            buf[len - 1] = 0;
         }
+        
+        for (p = buf + 1; *p; ++p) {
+            if (*p == '/') {
+                *p = 0;
+                make_dir(buf);
+                *p = '/';
+            }
+        }   
     }
 
     /* creating casual directories */
-    return make_dir(buf);
+    return make_dir(dirname);
 }
 
 static void
