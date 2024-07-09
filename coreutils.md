@@ -1,15 +1,12 @@
 LIST: https://en.wikipedia.org/wiki/List_of_POSIX_commands
-Complete: 3/107
+Complete: 3/104
 
 1. [] - alias
 2. [] - ar
-3. [] - asa
 4. [] - at
 5. [] - basename
 6. [] - batch
 7. [] - bc
-8. [] - bg
-9. [] - cal
 10. [] - cat
 11. [] - cd
 12. [] - chgrp

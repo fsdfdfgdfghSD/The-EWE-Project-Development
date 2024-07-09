@@ -79,7 +79,7 @@ static struct option long_options[] = {
 
 // ...
 
-static int
+int
 make_dir (const char *dirname)
 {
     if (md_mkdir(dirname) == -1) {
@@ -108,7 +108,7 @@ make_dir (const char *dirname)
     return 0;
 }
 
-static int
+int
 create_dir (const char *dirname)
 {
     if (is_parents) {
@@ -137,10 +137,10 @@ create_dir (const char *dirname)
     return make_dir(dirname);
 }
 
-static void
+void
 usage (int status)
 {
-    if (status == EXIT_FAILURE) {
+    if (status != EXIT_SUCCESS) {
         printf("Try '%s --help' for more information.\n", PROGRAM_NAME);
         exit(status);
     }
@@ -153,8 +153,8 @@ usage (int status)
     "  -v, --verbose\t\tprint a message for each created directory\n"
     "  -e, --explicit\tenables explicit information for verbose when calling `-v, --verbose`\n\n"
     
-    "\t--help\t\tdisplay this help and exit\n"
-    "\t--version\toutput version information and exit\n");
+    "      --help\t\tdisplay this help and exit\n"
+    "      --version\toutput version information and exit\n");
 
     printf("Examples:\n"
     "  %s test      -> creates directory 'test' if it doesn't exist.\n"
@@ -163,7 +163,7 @@ usage (int status)
     exit(status);
 }
 
-static void
+void
 version_info()
 {
     printf("%s (EWE Coreutils) 0.0.1\n"
@@ -214,7 +214,7 @@ main (int argc, char **argv)
                 break;
 
             default:
-                abort();
+                usage(2);
         }
     };
 
@@ -240,5 +240,5 @@ main (int argc, char **argv)
         usage(EXIT_FAILURE);
     }
 
-    exit(EXIT_SUCCESS);
+    return EXIT_SUCCESS;
 }
