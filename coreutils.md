@@ -92,7 +92,7 @@ Complete: 3/104
 93. [] - tr
 94. [x] - true
 95. [] - tsort
-96. [] - tty
+96. [x] - tty
 97. [] - umask
 98. [] - unalias
 99. [] - uname
