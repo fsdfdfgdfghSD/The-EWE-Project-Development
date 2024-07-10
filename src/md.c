@@ -1,4 +1,4 @@
-/* md -- make directories
+/* md/mkdir -- make directories
    Copyright (C) 2024 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -39,7 +39,11 @@
 # define PATH_SEP "/"
 #endif /* _WIN32 */
 
-#define PROGRAM_NAME "md"
+/* mkdir.c overrides this, acts like "md" by default. */
+#ifndef PROGRAM_NAME
+# define PROGRAM_NAME "md"
+#endif /* PROGRAM_NAME */
+
 #define AUTHOR "netheround"
 
 /* PATH_MAX definitions for limits.h */
@@ -83,8 +87,9 @@ int
 make_dir (const char *dirname)
 {
     if (md_mkdir(dirname) == -1) {
-        /* if EEXIST error, ignore it and continue */
         if (errno == EEXIST) {
+            /* if EEXIST error, skip it */
+
             return 0;
         } else {
             fprintf(stderr, "%s: cannot create directory '%s': %s\n", PROGRAM_NAME, dirname, strerror(errno));
@@ -93,14 +98,33 @@ make_dir (const char *dirname)
     }
 
     if (explicit_verbose) {
-        char buf[PATH_MAX];
-        const char *cwd = getcwd(buf, sizeof(buf));
+        char *cwd = NULL;
+        size_t size = PATH_MAX;
 
+        cwd = (char *)malloc(size);
         if (cwd == NULL) {
-            fprintf(stderr, "%s: could not get current working directory: %s\n", PROGRAM_NAME, strerror(errno));
+            fprintf(stderr, "%s: memory allocation failed\n", PROGRAM_NAME);
             return -1;
         }
+
+        while (getcwd(cwd, size) == NULL) {
+            if (errno == ERANGE) {
+                /* Path is too long for allocated buffer, realloc with larger size */
+                size *= 2;
+                cwd = (char *)realloc(cwd, size);
+                if (cwd == NULL) {
+                    fprintf(stderr, "%s: memory allocation failed\n", PROGRAM_NAME);
+                    return -1;
+                }
+            } else {
+                fprintf(stderr, "%s: could not get current working directory: %s\n", PROGRAM_NAME, strerror(errno));
+                free(cwd);
+                return -1;
+            }
+        }
+
         printf("%s: created directory '%s' in: '%s%s%s'\n", PROGRAM_NAME, dirname, cwd, PATH_SEP, dirname);
+        free(cwd);
     } else if (is_verbose) {
         printf("%s: created directory '%s'\n", PROGRAM_NAME, dirname);
     }
@@ -113,11 +137,16 @@ create_dir (const char *dirname)
 {
     if (is_parents) {
         /* creating directories parents */
-        char buf[PATH_MAX];
-        char *p = NULL;
+        char *buf, *p = NULL;
         size_t len;
 
-        snprintf(buf, sizeof(buf), "%s", dirname);
+        buf = (char *)malloc(PATH_MAX);
+        if (buf == NULL) {
+            fprintf(stderr, "%s: memory allocation failed\n", PROGRAM_NAME);
+            return -1;
+        }
+
+        snprintf(buf, PATH_MAX, "%s", dirname);
         len = strlen(buf);
 
         if (buf[len - 1] == '/') {
@@ -130,7 +159,8 @@ create_dir (const char *dirname)
                 make_dir(buf);
                 *p = '/';
             }
-        }   
+        }
+        free(buf);
     }
 
     /* creating casual directories */
@@ -151,7 +181,7 @@ usage (int status)
     puts("Options:\n"
     "  -p, --parents\t\tno error if existing, make parent directories as needed\n"
     "  -v, --verbose\t\tprint a message for each created directory\n"
-    "  -e, --explicit\tenables explicit information for verbose when calling `-v, --verbose`\n\n"
+    "  -e, --explicit\tsimilar to '-v, --verbose', prints a message with more explicit information.\n\n"
     
     "      --help\t\tdisplay this help and exit\n"
     "      --version\toutput version information and exit\n");
@@ -159,7 +189,7 @@ usage (int status)
     printf("Examples:\n"
     "  %s test      -> creates directory 'test' if it doesn't exist.\n"
     "  %s a b c     -> creates directories 'a', 'b', 'c', if they do not exist aleardy.\n"
-    "  %s -vp a/b   -> creates directories 'a' and 'b' inside of 'a' while printing a message for each created directory.\n", PROGRAM_NAME, PROGRAM_NAME, PROGRAM_NAME);
+    "  %s -ep a/b   -> creates directories 'a' and 'b' inside of 'a' while printing a message for each created directory.\n", PROGRAM_NAME, PROGRAM_NAME, PROGRAM_NAME);
     exit(status);
 }
 
