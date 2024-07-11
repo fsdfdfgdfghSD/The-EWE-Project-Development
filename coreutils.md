@@ -1,5 +1,5 @@
 LIST: https://en.wikipedia.org/wiki/List_of_POSIX_commands
-Complete: 3/104
+Complete: 5/104
 
 1. [] - alias
 2. [] - ar

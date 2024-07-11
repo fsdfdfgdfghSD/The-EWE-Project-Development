@@ -26,6 +26,8 @@
 #include <getopt.h>
 #include <limits.h> /* PATH_MAX */
 
+#include "include/stripslash.c"
+
 /* definitions */
 
 #ifdef _WIN32
@@ -135,35 +137,27 @@ make_dir (const char *dirname)
 int
 create_dir (const char *dirname)
 {
+    /* handling parented directories */
     if (is_parents) {
-        /* creating directories parents */
-        char *buf, *p = NULL;
-        size_t len;
-
-        buf = (char *)malloc(PATH_MAX);
-        if (buf == NULL) {
+        char *dir_cpy = strdup(dirname);
+        if (dir_cpy == NULL) {
             fprintf(stderr, "%s: memory allocation failed\n", PROGRAM_NAME);
             return -1;
         }
 
-        snprintf(buf, PATH_MAX, "%s", dirname);
-        len = strlen(buf);
+        /* Normalize directory path */
+        strip_trailing_slashes(dir_cpy);
 
-        if (buf[len - 1] == '/') {
-            buf[len - 1] = 0;
+        char *slash = dir_cpy;
+        while ((slash = strchr(slash + 1, '/')) != NULL) {
+            /* Null terminate at the last '/ */
+            *slash = '\0';
+
+            make_dir(dir_cpy);
+            *slash = '/';
         }
-        
-        for (p = buf + 1; *p; ++p) {
-            if (*p == '/') {
-                *p = 0;
-                make_dir(buf);
-                *p = '/';
-            }
-        }
-        free(buf);
+        free(dir_cpy);
     }
-
-    /* creating casual directories */
     return make_dir(dirname);
 }
 
