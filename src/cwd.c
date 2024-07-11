@@ -1,4 +1,4 @@
-/* cwd -- peint the name of the current working directory
+/* cwd -- print the name of the current working directory
    Copyright (C) 2024 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -25,19 +25,17 @@
 #include <string.h>
 #include <errno.h>
 
-/*
-TODO: Portability.
-
-On windows there's no such environment variable `PWD` so just throw an error when trying to print it with logical.
-On windows theres _getcwd, readmore: https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/getcwd-wgetcwd?view=msvc-170
-
-*/
-
-// TODO: -L and -P options.
-
 /* definitions */
 #define PROGRAM_NAME "cwd"
 #define AUTHOR "netheround"
+
+#ifdef _WIN32
+# include <direct.h>
+
+# define cwd_getpwd(buf, size) (_getcwd(buf, size))
+#elif defined (__linux__)
+# define cwd_getpwd(buf, size) (getcwd(buf, size))
+#endif /* _WIN32 */
 
 /* PATH_MAX definitions for limits.h */
 #ifndef PATH_MAX
@@ -53,7 +51,6 @@ static int verbose_flag;
 
 /* logical, physical modes, read more: https://en.wikipedia.org/wiki/Pwd */
 static bool is_logical = false;
-static bool is_physical = false;
 
 static struct option long_options[] = {
     /* these options set a flag. */
@@ -78,7 +75,20 @@ usage (int status)
         exit(status);
     }
 
-   puts("help");
+   printf("Usage %s [OPTION]...\n"
+   "Print the name of the current working directory.\n\n", PROGRAM_NAME);
+
+   puts("Options\n"
+   "  -L, --logical\t\tuse PWD from environment, only if your system has it.\n"
+   "  -P, --physical\tavoid all symlinks\n"
+   "      --help\t\tdisplay this help and exit\n"
+   "      --version\t\toutput version information and exit\n");
+   
+   printf("By default, '%s' behaves as if '-L' were specified.\n", PROGRAM_NAME);
+
+   printf("Examples:\n"
+   "  %s -L    -> print the current working directory using PWD.\n"
+   "  %s       -> print the current working directory.\n", PROGRAM_NAME, PROGRAM_NAME);
    exit(status);
 }
 
@@ -93,23 +103,41 @@ version_info()
     exit(EXIT_SUCCESS);
 }
 
-int
-print_cwd()
+char*
+get_curent_directory()
 {
    char *buf = (char *)malloc(PATH_MAX * sizeof(char));
-   if (buf == NULL)
-      return -1;
+   if (buf == NULL) {
+      fprintf(stderr, "%s: memory allocation failed\n", PROGRAM_NAME);
+      return NULL;
+   }
    
-   char *cwd = getcwd(buf, PATH_MAX);
-   if (cwd == NULL) {
-      free(buf);
-      return -1;
+   char *cwd;
+   if (is_logical) {
+      cwd = getenv("PWD");
+      if (cwd == NULL) {
+         fprintf(stderr, "%s: 'PWD' environment variable not found.\n", PROGRAM_NAME);
+         exit(EXIT_FAILURE);
+
+         free(buf);
+         return NULL;
+      }
+
+      /* Duplicate the string to ensure it's writable */
+      cwd = strdup(cwd);
+      if (cwd == NULL) {
+         return NULL;
+         free(buf);
+      }
+   } else {
+      cwd = getcwd(buf, PATH_MAX);
+      if (cwd == NULL) {
+         free(buf);
+         return NULL;
+      }
    }
 
-   puts(cwd);
-   free(buf);
-
-   return EXIT_SUCCESS;
+   return cwd;
 }
 
 int
@@ -138,7 +166,7 @@ main (int argc, char **argv)
             break;
 
          case 'P':
-            is_physical = true;
+            is_logical = false;
             break;
          
          case '?':
@@ -162,12 +190,15 @@ main (int argc, char **argv)
 
    /* main logic */
 
-   int status = print_cwd();
-   if (status == -1) {
+   char *cwd = get_curent_directory();
+   if (cwd == NULL) {
       fprintf(stderr, "%s: error fetching current working directory: %s", PROGRAM_NAME, strerror(errno));
       return EXIT_FAILURE;
    }
+   
+   printf("%s\n", cwd);
+   free(cwd);
 
-   return status;
+   return EXIT_SUCCESS;
    // ...
 }

@@ -70,7 +70,7 @@ Complete: 3/104
 71. [] - pr
 72. [] - printf
 73. [] - ps
-74. [] - pwd
+74. [x] - pwd
 75. [] - qalter
 76. [] - read
 77. [] - renice
