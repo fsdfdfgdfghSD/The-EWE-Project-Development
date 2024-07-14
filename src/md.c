@@ -259,7 +259,7 @@ main (int argc, char **argv)
             if (create_dir(dirname) == -1)
                 exit(EXIT_FAILURE);
         }
-    } else if (optind < argc + 1) {
+    } else if (argc == 1) {
         printf("%s: missing operand\n", PROGRAM_NAME);
         usage(EXIT_FAILURE);
     }
