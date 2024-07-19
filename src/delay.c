@@ -22,6 +22,7 @@ TODO:
 
 don't allow `delay -0s`
 add verbose option that prints every second
+Make it cross platform by using Sleep on windows.
 
 */
 
