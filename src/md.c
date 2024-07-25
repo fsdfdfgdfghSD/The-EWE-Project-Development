@@ -101,7 +101,7 @@ make_dir (const char *dirname)
 
     if (explicit_verbose) {
         char *cwd = NULL;
-        size_t size = PATH_MAX;
+        size_t size = PATH_MAX * sizeof(char);
 
         cwd = (char *)malloc(size);
         if (cwd == NULL) {
