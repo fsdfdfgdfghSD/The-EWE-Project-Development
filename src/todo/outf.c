@@ -1,5 +1,5 @@
 /* outf -- output formatted standard output
-   Copyright (C) 2024 Free Software Foundation, Inc.
+   Copyright (C) 2024 The EWE Project.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

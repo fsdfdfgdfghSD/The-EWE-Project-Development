@@ -1,2 +1,7 @@
-TODO: Write a makefile for building the whole source, compiling it for each system, placing the binaries where they should, and exporting them all. on linux `/bin` and they'll have a sep directory, but you wont need to reference that directory when you use them, they will be automatically exported into ~/.bashrc
-TODO: Write a cool manual similar to `man`, named `ewe` command, but for my core utilities. the man command should use `less` for displaying output, see more: `man 1 less`, https://en.wikipedia.org/wiki/Man_page
+-- Building:
+TODO: Write a Makefile that moves the precompiled binaries into the destination folder, for instance on linux it would be: /bin/ewe and the "ewe" directory will be exported in .bashrc.
+I will be also writing a man-page for the linux users about calling ewe commands and so on, to call them you'll write `ewe/md --version` for example, so i don't mix them up with gnu's
+core utilities.
+
+TODO: Write a manual similar to `man`, named `ewe`, but for my core utilities.
+The ewe-manual should use `less` for displaying output, see more: `man 1 less`, https://en.wikipedia.org/wiki/Man_page
