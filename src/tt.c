@@ -132,7 +132,7 @@ main (int argc, char **argv)
         return isatty(STDIN_FILENO) ? EXIT_SUCCESS : EXIT_FAILURE;
     
     int status = EXIT_SUCCESS;
-    char const *tt = ttyname(STDIN_FILENO);
+    const char *tt = ttyname(STDIN_FILENO);
 
     /* incase the tty hasnt been found. */
     if (!tt) {
