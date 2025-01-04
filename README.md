@@ -1,3 +1,5 @@
+> NOTE ⚠: I took a break from this, meaning i'm not gonna work on it as often as I used to, but i'll definitely get back to it and release more core utilities.
+
 # The-EWE-Project
 The EWE Project is a collection of free software focused on providing mandatory POSIX core utilities with enhanced portability across almost all platforms including (Windows, Linux and MacOS). All writen in C99
 
