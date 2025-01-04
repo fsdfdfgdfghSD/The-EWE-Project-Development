@@ -1,1 +1,1 @@
-// `man 1 rmdir`
+/* `man 1 rmdir` */

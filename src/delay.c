@@ -14,6 +14,7 @@
    You should have received a copy of the GNU General Public License
    along with this program. If not, see <https://www.gnu.org/licenses/>. */
 /* Written by netheround <myemail@email.com> */
+
 /* gcc delay.c -o delay ./include/xnanosleep.c */
 
 /*

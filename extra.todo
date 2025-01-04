@@ -1,7 +1,9 @@
--- Building:
 TODO: Write a Makefile that moves the precompiled binaries into the destination folder, for instance on linux it would be: /bin/ewe and the "ewe" directory will be exported in .bashrc.
-I will be also writing a man-page for the linux users about calling ewe commands and so on, to call them you'll write `ewe/md --version` for example, so i don't mix them up with gnu's
-core utilities.
+A /bin/ewe directory to not mix unix's core utilities with gnu's, can be turned off by a flag.
 
-TODO: Write a manual similar to `man`, named `ewe`, but for my core utilities.
-The ewe-manual should use `less` for displaying output, see more: `man 1 less`, https://en.wikipedia.org/wiki/Man_page
+TODO: Write man pages for documenting each core util.
+
+-- TODO: use void, as parameters for functions that dont have arguments.
+-- TODO: have vesioning and some switch cases into header files, for modularity and less lines. (include/config.h), same for author, name, etc.
+-- TODO: Make a uname command (todo/sysinfo.c) and finish the todos in `delay.c'
+-- TODO: Use gettext(3) for translating help/version, basically any type of information displayed on the output.

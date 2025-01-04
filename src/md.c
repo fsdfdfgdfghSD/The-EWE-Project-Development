@@ -53,8 +53,6 @@
 # define PATH_MAX PATH_MAX
 #endif /* PATH_MAX */
 
-// ...
-
 /* options */
 
 /* flag set by '--help, --version'. */
@@ -79,11 +77,8 @@ static struct option long_options[] = {
     {"help", no_argument, &verbose_flag, 1},
     {"version", no_argument, &verbose_flag, 2},
 
-    // terminating...
     {0, 0, 0, 0}
 };
-
-// ...
 
 int
 make_dir (const char *dirname)

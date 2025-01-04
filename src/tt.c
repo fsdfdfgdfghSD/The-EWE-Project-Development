@@ -25,8 +25,6 @@
 #define PROGRAM_NAME "tt"
 #define AUTHOR "netheround"
 
-// ...
-
 /* options */
 
 /* flag set by '--help, --version'. */
@@ -44,11 +42,8 @@ static struct option long_options[] = {
     {"help", no_argument, &verbose_flag, 1},
     {"version", no_argument, &verbose_flag, 2},
 
-    // terminating...
     {0, 0, 0, 0}
 };
-
-// ...
 
 void
 usage (int status)

@@ -1,0 +1,1 @@
+/* man 1 uname ; man 2 uname */

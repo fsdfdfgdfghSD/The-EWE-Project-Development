@@ -31,8 +31,6 @@
 #define PROGRAM_NAME "outf"
 #define AUTHOR "netheround"
 
-// ...
-
 void
 usage (int status)
 {
@@ -59,7 +57,6 @@ version_info()
 int
 output_formatted (const char *format, ...)
 {
-    // ...
     va_list args;
     va_start(args, format);
 
